@@ -7,7 +7,7 @@ import time
 f=urllib2.urlopen('http://movie.douban.com/tag/?view=cloud').read()
 n1=f.find('007')
 n2=f.find('宗教')        #n1是第一个标签，n2是第二个标签，利用这两个标签定位标签们在f中的位置
-f1=f[(n1-4):(n2+10)]    #4和10是随便取的数字
+f1=f[(n1-4):(n2+10)]    #去掉标签旁边的杂质
 f2=re.findall('\>\S{1,}?\<',f1)         #初步抓取标签
 movie_tags=[]   #movie_tags为电影标签
 for n in f2:
