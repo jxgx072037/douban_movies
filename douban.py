@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import urllib2
 import re
+import time
 
 #抓取豆瓣电影标签
 f=urllib2.urlopen('http://movie.douban.com/tag/?view=cloud').read()
@@ -42,7 +43,6 @@ class Next_page:
 
 movie_list=Movie_list()
 movie=[]
-k=1          #用来记录进度
 
 
 #抓取电影信息（名字，评价人数，排名，地址）
@@ -58,9 +58,12 @@ class Movie_info:
     
     # 抓取每部电影的评价人数
         self.movie_comment2=[]
-        self.movie_comment1=re.findall('class=\"pl.*评价',movie_list.request_open(n1,n2))
+        self.movie_comment1=re.findall('span class=\"pl.*评价|span class=\"pl.*上映',movie_list.request_open(n1,n2))
         for s in self.movie_comment1:
-            self.movie_comment2.append(re.findall('\d{1,}',s)[0])
+            if re.findall('\d{1,}',s):
+                self.movie_comment2.append(re.findall('\d{1,}',s)[0])
+            else:
+                self.movie_comment2.append('0')
 
     # 抓取每部电影的评分
         self.movie_rating2=[]
@@ -78,9 +81,9 @@ class Movie_info:
         self.movie_url1=re.findall('http://movie.douban.com/subject/\d{1,10}',movie_list.request_open(n1,n2))
         for i in range(len(self.movie_url1)/2):
             self.movie_url2.append(self.movie_url1[2*self.n])
-            self.n+=1
-            
-    # 把每部电影的4个信息合并成一个list--self.dic，再依次存到movie这个大list中
+            self.n+=1   
+
+ # 把每部电影的4个信息合并成一个list--self.dic，再依次存到movie这个大list中
         for i in range(len(self.movie_name2)):
             self.dic=[]                                        #用self.dic暂时存储电影信息
             self.dic.append(self.movie_name2[i])               #名字
@@ -89,33 +92,47 @@ class Movie_info:
             self.dic.append(self.movie_url2[i])                #地址
             if int(self.dic[1])>25000:    #评价人数少于25000的直接放弃
                 movie.append(self.dic)
-                global k
-                print '抓取进度：'+str(k)+'/3000'      #打印进度
-                k+=1
+                if len(movie)>2:
+                    for i in range(len(movie)-1):              #第一次去重
+                        if movie[-1][0]==movie[i][0]:   #用电影名字判定是否重复
+                            del movie[-1]
+                            break
+                print '%d/3000'%(len(movie))      #打印进度
             else:
                 continue
 
 next_page=Next_page()
-movie_info=Movie_info()
+movie_info=Movie_info() 
 
-#执行
-for x in range(len(movie_tags)):
-    for i in range(next_page.np(x)):
+
+#执行，开始抓取
+for x in range(len(movie_tags)):          #x代表标签在movie_tags这个list中的位置
+    print "正在抓取标签“%s”中的电影"%(movie_tags[x])
+    starttime2=time.time()
+    for i in range(next_page.np(x)):       #i代表正在抓取当前标签的第i页
+        print "开始抓取第%d页，抓取进度："%(i+1)
+        starttime2=time.time()
         movie_info.m(x,i)
-        if len(movie)>3000:
-            break
-        else:
-            continue
-    if len(movie)>3000:
-        break
-    else:
-        continue
+        endtime2=time.time()
+        print "抓取第%d页完毕，用时%.2fs"%(i+1,endtime2-starttime2)     #输出抓取每个页面所花费的时间
+        time.sleep(2)
+    endtime2=time.time()
+    print "抓取“%s”标签完毕，用时%.2fs\n"%(movie_tags[x],endtime2-starttime2)   #输出抓取每个标签所花费的时间
+
+
+#删除超过3000部的电影
+if len(movie)>3000:
+    for i in range(len(movie)-3000):
+        del movie[-i]
 
 #排序
 def comment(s):
     return int(s[1])
+starttime4=time.time()
 print '开始排序……'
 movie.sort(key = comment, reverse=True)
+endtime4=time.time()
+print '排序完毕，共耗时%.2f'%(endtime4-starttime4)
 
 #写到html文件里面
 f=file('Douban_movies.html','w')
@@ -130,7 +147,7 @@ for i in movie:
 f.write('</body>')
 f.close()
 
-print '完成！'
+print '完成！请查看html文件，获取豆瓣电影榜单。'
 
 
 
