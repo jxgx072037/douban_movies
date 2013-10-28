@@ -93,7 +93,7 @@ class Movie_info:
             if int(self.dic[1])>25000:    #评价人数少于25000的直接放弃
                 movie.append(self.dic)
                 if len(movie)>2:
-                    for i in range(len(movie)-1):              #第一次去重
+                    for i in range(len(movie)-1):              #去重
                         if movie[-1][0]==movie[i][0]:   #用电影名字判定是否重复
                             del movie[-1]
                             break
