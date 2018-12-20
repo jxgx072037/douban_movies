@@ -7,7 +7,7 @@ import time
 f=urllib2.urlopen('http://movie.douban.com/tag/?view=cloud').read()
 n1=f.find('007')
 n2=f.find('宗教')        #n1是第一个标签，n2是第二个标签，利用这两个标签定位标签们在f中的位置
-f1=f[(n1-4):(n2+10)]    #去掉标签旁边的杂质
+f1=f[(n1):(n2+10)]    #去掉标签旁边的杂质
 f2=re.findall('\>\S{1,}?\<',f1)         #初步抓取标签
 movie_tags=[]   #movie_tags为电影标签
 for n in f2:
@@ -22,8 +22,6 @@ class Movie_list:
         self.url2='?start='+str(n2*20)+'&type=T'
         self.page1=urllib2.urlopen(self.url1+movie_tags[n1]+self.url2).read()
         return self.page1 #点击标签打开后的页面地址
-        
-    
 
 #抓取电影列表的页码数
 class Next_page:
@@ -33,7 +31,7 @@ class Next_page:
         self.page1=urllib2.urlopen(self.url1+movie_tags[n1]).read()
         self.url2=re.findall('amp.*\d{1,2}',self.page1)
         if self.url2:
-            self.num2=self.url2[-1][13:]
+            self.num2=self.url2[-2][13:]
             if int(self.num2)<50 or int(self.num2)==50:
                 return int(self.num2)
             else:
@@ -148,16 +146,3 @@ f.write('</body>')
 f.close()
 
 print '完成！请查看html文件，获取豆瓣电影榜单。'
-
-
-
-
-
-
-
-
-
-
-
-        
-
